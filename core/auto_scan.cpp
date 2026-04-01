@@ -297,12 +297,40 @@ DeviceInfo AutoScan::scan()
     }
 
     // --- BIOS serial number ---
+    // Fallback to MAC address if BIOS returns a generic placeholder.
     {
+        static const QStringList kPlaceholders = {
+            QStringLiteral("default string"),
+            QStringLiteral("to be filled by o.e.m."),
+            QStringLiteral("to be filled"),
+            QStringLiteral("system serial number"),
+            QStringLiteral("none"),
+            QStringLiteral("n/a"),
+            QStringLiteral("unknown"),
+        };
+
         std::wstring val = wmi_query(svc.p,
             L"SELECT SerialNumber FROM Win32_BIOS",
             L"SerialNumber");
-        if (!val.empty()) {
-            info.serial_number = wstr_to_qstring(val).trimmed();
+        const QString bios_sn = wstr_to_qstring(val).trimmed();
+        const bool is_placeholder = bios_sn.isEmpty() ||
+            kPlaceholders.contains(bios_sn.toLower());
+
+        if (!is_placeholder) {
+            info.serial_number = bios_sn;
+        } else {
+            // Fallback: use MAC address of first physical non-loopback adapter
+            std::wstring mac_val = wmi_query(svc.p,
+                L"SELECT MACAddress FROM Win32_NetworkAdapter"
+                L" WHERE PhysicalAdapter=TRUE AND MACAddress IS NOT NULL",
+                L"MACAddress");
+            const QString mac = wstr_to_qstring(mac_val).trimmed();
+            if (!mac.isEmpty()) {
+                // Store as "MAC-XXXXXXXXXXXX" so it's clearly a fallback
+                info.serial_number = QStringLiteral("MAC-") +
+                    QString(mac).remove(QLatin1Char(':'));
+            }
+            // else stays "N/A"
         }
     }
 

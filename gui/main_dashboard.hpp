@@ -25,6 +25,7 @@
 #include "gui/touchpad_window.hpp"
 #include "gui/mic_window.hpp"
 #include "gui/ports_window.hpp"
+#include "gui/summary_window.hpp"
 
 namespace nbi {
 
@@ -74,6 +75,7 @@ private slots:
     void onMicFinished(nbi::ModuleResult result);
     void onPortsCardClicked();
     void onPortsFinished(nbi::ModuleResult result);
+    void onSummaryClicked();
 
 private:
     void loadDeviceInfo();
@@ -108,6 +110,7 @@ private:
     QCheckBox* m_chk_no_touchpad{nullptr};  ///< Touchpad card — PC/tablet no touchpad
 
     std::array<ModuleCard, kModuleCount> m_cards{};
+    std::array<ModuleResult, kModuleCount> m_results{};
 };
 
 } // namespace nbi

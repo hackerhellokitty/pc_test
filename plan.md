@@ -139,15 +139,21 @@
 ### Tasks
 
 **Scoring System**
-- [ ] กำหนด weight แต่ละโมดูล (แยก spec)
-- [ ] Cap rule: Battery Wear < 60% หรือ SMART warning → cap คะแนนรวม
-- [ ] `gui/summary_page.cpp` — verdict สี + รายการปัญหาเรียงความเสี่ยง
+- [x] กำหนด weight แต่ละโมดูล (Battery=20, SMART=20, Screen=15, Keyboard=15, Thermal/Ports/Audio/Touchpad=5 each, Network/Physical=0)
+- [x] Cap rule: Battery Wear < 60% หรือ SMART warning → cap คะแนนรวมไม่เกิน 59 — `core/scorer.cpp`
+- [x] `gui/summary_page.cpp` — verdict สี + รายการปัญหาเรียงความเสี่ยง
+- [x] `gui/summary_window.cpp` — wrapper dialog + trigger Export
+
+**Physical Checklist — Hinge Stress Test**
+- [x] เพิ่ม item "Hinge: พับ-เปิดจอ 3-5 ครั้ง ขณะหน้าจอขาว — สังเกตอาการวูบ/สีเพี้ยน/จอดับ" ใน `physical_checklist_view.cpp`
 
 **Report Export**
-- [ ] `core/report_generator.cpp`
-- [ ] PNG: `QScreen::grabWindow` + overlay dead pixel circles + `QPixmap::save`
-- [ ] PDF: `QPrinter(PdfFormat)` + `QPainter` layout
-- [ ] ข้อมูลใน report: timestamp, Serial, per-module result, dead pixel coordinates, checklist answers
+- [x] `gui/report_generator.cpp`
+- [x] PNG: `QScreen::grabWindow` + overlay dead pixel circles + `QPixmap::save`
+- [x] PNG Watermark: `QPainter` render Serial Number + Timestamp ทับบน QPixmap ก่อน save — ป้องกันสลับรูป
+- [x] PDF: `QPrinter(PdfFormat)` + `QPainter` layout
+- [x] PDF Hash: SHA-256 (`QCryptographicHash::Sha256`) จาก `SerialNumber + TestResult + SecretKey` พิมพ์ท้าย report — ป้องกันแก้ไขผลด้วย PDF editor
+- [x] ข้อมูลใน report: timestamp, Serial, per-module result, dead pixel coordinates
 
 **UX Pass**
 - [ ] ทุกหน้ามีคำอธิบาย "กำลังทำอะไร / ผลหมายความว่าอะไร"

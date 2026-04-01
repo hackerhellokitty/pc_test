@@ -64,6 +64,12 @@ qt_add_executable(NBI
     ports_view.hpp
     ports_window.cpp
     ports_window.hpp
+    summary_page.cpp
+    summary_page.hpp
+    summary_window.cpp
+    summary_window.hpp
+    report_generator.cpp
+    report_generator.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc
@@ -93,6 +99,8 @@ target_link_libraries(NBI
     PRIVATE
         Qt6::Widgets
         Qt6::Multimedia
+        Qt6::PrintSupport
+        Qt6::Concurrent
         common
         core
         Dxva2          # DDC/CI: GetMonitorBrightness / SetMonitorBrightness

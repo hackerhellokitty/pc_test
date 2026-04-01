@@ -21,6 +21,28 @@ MicView::MicView(QWidget* parent)
     buildUi();
 }
 
+MicView::~MicView()
+{
+    m_rec_timer->stop();
+
+    if (m_source) {
+        m_source->stop();
+        m_source.reset();
+    }
+    if (m_rec_buf) {
+        m_rec_buf->close();
+        delete m_rec_buf;
+        m_rec_buf = nullptr;
+    }
+    if (m_sink) {
+        disconnect(m_sink.get(), nullptr, this, nullptr);
+        m_sink->stop();
+        m_sink.reset();
+    }
+    if (m_play_buf.isOpen())
+        m_play_buf.close();
+}
+
 void MicView::buildUi()
 {
     auto* root = new QVBoxLayout(this);
@@ -133,6 +155,17 @@ void MicView::buildUi()
 // ---------------------------------------------------------------------------
 void MicView::onRecordClicked()
 {
+    // Stop and release any previous session
+    if (m_source) {
+        m_source->stop();
+        m_source.reset();
+    }
+    if (m_rec_buf) {
+        m_rec_buf->close();
+        delete m_rec_buf;
+        m_rec_buf = nullptr;
+    }
+
     // Find default input device
     const QAudioDevice dev = QMediaDevices::defaultAudioInput();
     if (dev.isNull()) {
@@ -149,10 +182,9 @@ void MicView::onRecordClicked()
     m_recorded.clear();
     m_source = std::make_unique<QAudioSource>(dev, fmt);
 
-    // Record into QByteArray via QBuffer
-    QBuffer* rec_buf = new QBuffer(&m_recorded, this);
-    rec_buf->open(QIODevice::WriteOnly);
-    m_source->start(rec_buf);
+    m_rec_buf = new QBuffer(&m_recorded, this);
+    m_rec_buf->open(QIODevice::WriteOnly);
+    m_source->start(m_rec_buf);
 
     m_rec_elapsed = 0;
     m_bar_level->setValue(0);
@@ -173,7 +205,15 @@ void MicView::onRecordTick()
 
     if (m_rec_elapsed >= kRecordSecs) {
         m_rec_timer->stop();
-        if (m_source) m_source->stop();
+        if (m_source) {
+            m_source->stop();
+            m_source.reset();
+        }
+        if (m_rec_buf) {
+            m_rec_buf->close();
+            delete m_rec_buf;
+            m_rec_buf = nullptr;
+        }
         m_bar_level->setVisible(false);
         setPhase(2);
     }
@@ -182,6 +222,15 @@ void MicView::onRecordTick()
 void MicView::onPlayClicked()
 {
     if (m_recorded.isEmpty()) return;
+
+    // Stop and release previous sink safely
+    if (m_sink) {
+        disconnect(m_sink.get(), nullptr, this, nullptr);
+        m_sink->stop();
+        m_sink.reset();
+    }
+    if (m_play_buf.isOpen())
+        m_play_buf.close();
 
     const QAudioDevice out_dev = QMediaDevices::defaultAudioOutput();
     if (out_dev.isNull()) {
@@ -209,7 +258,9 @@ void MicView::onPlayClicked()
 void MicView::onPlaybackStateChanged(QAudio::State state)
 {
     if (state == QAudio::IdleState || state == QAudio::StoppedState) {
-        m_play_buf.close();
+        // Disconnect before stopping to prevent re-entrant signal
+        if (m_sink) disconnect(m_sink.get(), nullptr, this, nullptr);
+        if (m_play_buf.isOpen()) m_play_buf.close();
         setPhase(4);
     }
 }

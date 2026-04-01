@@ -29,6 +29,7 @@ class MicView : public QWidget {
     Q_OBJECT
 public:
     explicit MicView(QWidget* parent = nullptr);
+    ~MicView() override;
     ModuleResult result() const;
 
 signals:
@@ -60,6 +61,7 @@ private:
     std::unique_ptr<QAudioSink>   m_sink;
     QByteArray  m_recorded;
     QBuffer     m_play_buf;
+    QBuffer*    m_rec_buf{nullptr};   ///< recording target — owned, replaced each record session
 
     QTimer* m_rec_timer{nullptr};
     int     m_rec_elapsed{0};

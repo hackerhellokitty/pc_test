@@ -61,7 +61,7 @@ endforeach()
 # ---------------------------------------------------------------------------
 # Qt 6
 # ---------------------------------------------------------------------------
-find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Multimedia)
+find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Multimedia PrintSupport Concurrent)
 
 # ---------------------------------------------------------------------------
 # Subprojects

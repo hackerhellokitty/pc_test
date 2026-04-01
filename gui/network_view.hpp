@@ -4,6 +4,7 @@
 // gui/network_view.hpp
 // ---------------------------------------------------------------------------
 
+#include <QFutureWatcher>
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -28,6 +29,7 @@ signals:
 private slots:
     void onScanClicked();
     void onDoneClicked();
+    void onScanFinished();
 
 private:
     void buildUi();
@@ -45,6 +47,8 @@ private:
 
     NetworkResult m_last_result;
     bool          m_scanned{false};
+
+    QFutureWatcher<NetworkResult>* m_watcher{nullptr};
 };
 
 } // namespace nbi

@@ -24,6 +24,7 @@
 #include "gui/touchpad_window.hpp"
 #include "gui/mic_window.hpp"
 #include "gui/ports_window.hpp"
+#include "gui/summary_window.hpp"
 
 namespace nbi {
 
@@ -384,6 +385,17 @@ void MainDashboard::buildUi()
 
     root_layout->addWidget(modules_group, 1);
 
+    // Summary / Export button
+    auto* btn_summary = new QPushButton(QStringLiteral("สรุปผล + Export Report"), central);
+    btn_summary->setStyleSheet(QStringLiteral(
+        "QPushButton { font-size: 13px; padding: 8px 24px;"
+        " background-color: #1565c0; color: white; border-radius: 6px; }"
+        "QPushButton:hover { background-color: #1976d2; }"
+        "QPushButton:pressed { background-color: #0d47a1; }"
+    ));
+    root_layout->addWidget(btn_summary, 0, Qt::AlignCenter);
+    connect(btn_summary, &QPushButton::clicked, this, &MainDashboard::onSummaryClicked);
+
     // Status bar
     statusBar()->showMessage(
         QStringLiteral("Notebook Inspector  |  Windows 10/11 x64 only  |  Requires Administrator"));
@@ -437,6 +449,8 @@ void MainDashboard::populateDeviceLabels()
 void MainDashboard::updateModuleCard(int index, const ModuleResult& result)
 {
     if (index < 0 || index >= kModuleCount) return;
+
+    m_results[static_cast<std::size_t>(index)] = result;
 
     ModuleCard& card = m_cards[static_cast<std::size_t>(index)];
 
@@ -685,6 +699,15 @@ void MainDashboard::onPortsCardClicked()
 void MainDashboard::onPortsFinished(nbi::ModuleResult result)
 {
     updateModuleCard(6, result);
+}
+
+// ---------------------------------------------------------------------------
+// onSummaryClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onSummaryClicked()
+{
+    auto* w = new SummaryWindow(m_device_info, m_results, this, this);
+    w->show();
 }
 
 // ---------------------------------------------------------------------------

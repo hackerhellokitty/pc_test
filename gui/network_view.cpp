@@ -7,10 +7,12 @@
 #include <QApplication>
 #include <QFont>
 #include <QFrame>
+#include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QProgressBar>
 #include <QScrollArea>
 #include <QSizePolicy>
+#include <QtConcurrent/QtConcurrent>
 
 namespace nbi {
 
@@ -383,10 +385,23 @@ void NetworkView::populateResults(const NetworkResult& r)
 void NetworkView::onScanClicked()
 {
     m_btn_scan->setEnabled(false);
+    m_btn_done->setEnabled(false);
     m_lbl_status->setText(QStringLiteral("กำลังตรวจสอบเครือข่าย…"));
-    QApplication::processEvents();
 
-    m_last_result = NetworkManager::scan();
+    if (!m_watcher) {
+        m_watcher = new QFutureWatcher<NetworkResult>(this);
+        connect(m_watcher, &QFutureWatcher<NetworkResult>::finished,
+                this, &NetworkView::onScanFinished);
+    }
+
+    m_watcher->setFuture(QtConcurrent::run([]() {
+        return NetworkManager::scan();
+    }));
+}
+
+void NetworkView::onScanFinished()
+{
+    m_last_result = m_watcher->result();
     m_scanned = true;
 
     populateResults(m_last_result);
@@ -395,6 +410,7 @@ void NetworkView::onScanClicked()
     m_lbl_status->setText(
         QStringLiteral("ตรวจสอบเสร็จ — %1").arg(mr.summary));
     m_btn_scan->setEnabled(true);
+    m_btn_done->setEnabled(true);
 }
 
 void NetworkView::onDoneClicked()

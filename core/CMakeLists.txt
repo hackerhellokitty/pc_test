@@ -10,6 +10,8 @@ add_library(core STATIC
     audio_manager.cpp
     battery_manager.cpp
     thermal_manager.cpp
+    scorer.cpp
+    scorer.hpp
 )
 
 target_include_directories(core

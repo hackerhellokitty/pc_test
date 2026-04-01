@@ -30,6 +30,13 @@ static const std::vector<ChecklistItem> kChecklistItems = {
         true,   // allow_na
     },
     {
+        QStringLiteral("hinge_stress"),
+        QStringLiteral("Hinge Stress — สายแพจอ"),
+        QStringLiteral("เปิดหน้าจอสีขาวไว้ (Screen Test) แล้วพับ-เปิดจอช้าๆ 3-5 ครั้ง สังเกตว่าจอวูบ สีเพี้ยน หรือดับขณะขยับบานพับหรือไม่ — เลือก \"ไม่มี\" ถ้าเป็นแท็บเล็ต"),
+        QStringLiteral("🔦"),
+        true,   // allow_na
+    },
+    {
         QStringLiteral("bezel"),
         QStringLiteral("กรอบจอ (Bezel)"),
         QStringLiteral("ตรวจกรอบรอบจอว่าไม่แตก ไม่ยกออก ไม่มีรอยกดบุ๋ม"),
