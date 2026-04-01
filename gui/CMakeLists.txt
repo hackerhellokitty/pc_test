@@ -60,6 +60,10 @@ qt_add_executable(NBI
     mic_view.hpp
     mic_window.cpp
     mic_window.hpp
+    ports_view.cpp
+    ports_view.hpp
+    ports_window.cpp
+    ports_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc

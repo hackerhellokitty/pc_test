@@ -101,17 +101,17 @@
 - [ ] รอ test จริงบน laptop (desktop AMD ไม่มี CPU die temp ผ่าน ACPI)
 
 **Ports**
-- [ ] `core/device_watcher.cpp` — `RegisterDeviceNotification` + `WM_DEVICECHANGE`
-- [ ] Filter `GUID_DEVINTERFACE_USB_DEVICE` + `GUID_DEVINTERFACE_DISK`
-- [ ] `gui/port_audio_view.cpp` — port grid + "Detected!" feedback
-- [ ] Manual mark พอร์ตที่ไม่ตอบสนอง
+- [x] `gui/ports_view.cpp` + `ports_window.cpp` — user ระบุจำนวน USB port
+- [x] Phase 1 USB: `RegisterDeviceNotification` + `WM_DEVICECHANGE` จับ plug event, countdown 10 วิต่อ port, manual mark ไม่ตอบสนองพร้อมระบุชื่อ port
+- [x] Phase 2 3.5mm: เสียบหูฟัง → Play 1 kHz tone → confirm ได้ยิน/ไม่ได้ยิน
+- [x] Result รวม USB + 3.5mm เป็น ModuleResult เดียว
 
 **Audio / Mic**
 - [x] `core/audio_manager.cpp` — enumerate output devices (`QMediaDevices::audioOutputs`)
 - [x] `gui/audio_view.cpp` — DeviceTestCard per device: sine 1 kHz → Play → ผู้ใช้ confirm ได้ยิน/ไม่ได้ยิน
 - [x] `gui/audio_window.cpp` — wrapper window
 - [x] Handle ไม่มี speaker — skip gracefully
-- [ ] Mic test — `QAudioSource` + waveform RMS (ยังไม่ได้ทำ)
+- [x] `gui/mic_view.cpp` + `mic_window.cpp` — อัดเสียง 10 วิ → เล่นกลับ → confirm ได้ยิน/ไม่ได้ยิน (`QAudioSource` + `QAudioSink`)
 
 **Connectivity**
 - [x] `core/network_manager.cpp` — `GetAdaptersAddresses` + `IcmpSendEcho` (timeout 500ms)
@@ -124,6 +124,12 @@
 
 ทุก 10 โมดูลทำงานได้ — พร้อม end-to-end test ครั้งแรกตั้งแต่เปิดจนถึง summary
 
+**หมายเหตุ — รอ test จริงบนเครื่อง target:**
+- Battery: รอ laptop (desktop ไม่มีแบต)
+- Wi-Fi / LAN: รอ test บนเครื่องจริง
+- Temperature: รอ laptop (desktop AMD ไม่ expose CPU die temp ผ่าน ACPI)
+- Screen Touchscreen: รอ laptop ที่มี touchscreen
+
 ---
 
 ## Phase 4 — Report + Release
@@ -131,12 +137,6 @@
 **เป้าหมาย:** Export ได้, UX สมบูรณ์, พร้อม ship เป็น single EXE
 
 ### Tasks
-
-**Physical Checklist**
-- [x] `gui/physical_checklist_view.cpp` — guided checklist 8 รายการ (Lid, Hinge, Bezel, Palm Rest, Bottom, Ports, Keyboard, Screen)
-- [x] 3 ตัวเลือกต่อข้อ: ✓ ปกติ / ✗ พบปัญหา / — ไม่มี (N/A, เฉพาะ Hinge)
-- [x] Done disabled จนกว่าจะตอบครบ — progress counter realtime
-- [x] `gui/physical_checklist_window.cpp` — wrapper window
 
 **Scoring System**
 - [ ] กำหนด weight แต่ละโมดูล (แยก spec)

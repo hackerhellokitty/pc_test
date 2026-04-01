@@ -24,6 +24,7 @@
 #include "gui/thermal_window.hpp"
 #include "gui/touchpad_window.hpp"
 #include "gui/mic_window.hpp"
+#include "gui/ports_window.hpp"
 
 namespace nbi {
 
@@ -71,6 +72,8 @@ private slots:
     void onTouchpadFinished(nbi::ModuleResult result);
     void onMicCardClicked();
     void onMicFinished(nbi::ModuleResult result);
+    void onPortsCardClicked();
+    void onPortsFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();

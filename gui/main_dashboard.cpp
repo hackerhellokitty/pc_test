@@ -23,6 +23,7 @@
 #include "gui/thermal_window.hpp"
 #include "gui/touchpad_window.hpp"
 #include "gui/mic_window.hpp"
+#include "gui/ports_window.hpp"
 
 namespace nbi {
 
@@ -270,6 +271,21 @@ void MainDashboard::buildUi()
             card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
             connect(btn_start, &QPushButton::clicked,
                     this, &MainDashboard::onBatteryCardClicked);
+        }
+
+        // Card index 6 = Ports — add a Start button
+        if (i == 6) {
+            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
+            btn_start->setStyleSheet(QStringLiteral(
+                "QPushButton { font-size: 11px; padding: 3px 10px;"
+                " border: 1px solid #555; border-radius: 4px;"
+                " background-color: #3a3a3a; color: #e0e0e0; }"
+                "QPushButton:hover { background-color: #4a4a4a; }"
+                "QPushButton:pressed { background-color: #2a2a2a; }"
+            ));
+            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
+            connect(btn_start, &QPushButton::clicked,
+                    this, &MainDashboard::onPortsCardClicked);
         }
 
         // Card index 7 = Audio — Speaker + Mic buttons
@@ -653,6 +669,22 @@ void MainDashboard::onTouchpadCardClicked()
 void MainDashboard::onTouchpadFinished(nbi::ModuleResult result)
 {
     updateModuleCard(2, result);
+}
+
+// ---------------------------------------------------------------------------
+// onPortsCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onPortsCardClicked()
+{
+    auto* w = new PortsWindow(this);
+    connect(w, &PortsWindow::finished, this, &MainDashboard::onPortsFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onPortsFinished(nbi::ModuleResult result)
+{
+    updateModuleCard(6, result);
 }
 
 // ---------------------------------------------------------------------------
