@@ -7,6 +7,7 @@
 #include <QFont>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QSplitter>
 
 namespace nbi {
 
@@ -36,23 +37,35 @@ void TouchpadView::buildUi()
 
     // Hint
     m_lbl_hint = new QLabel(
-        QStringLiteral("ลากนิ้วบน touchpad ให้ทั่วพื้นที่  •  กด Done เมื่อเสร็จ"), this);
-    m_lbl_hint->setStyleSheet(QStringLiteral("color: #aaaaaa; font-size: 12px;"));
+        QStringLiteral("① ลากนิ้วบน touchpad ให้ทั่วพื้นที่วาด"
+                       "   ② ทดสอบ gesture ในกล่องด้านล่าง"
+                       "   ③ กด Done"), this);
+    m_lbl_hint->setStyleSheet(QStringLiteral("color: #aaaaaa; font-size: 11px;"));
     m_lbl_hint->setWordWrap(true);
     root->addWidget(m_lbl_hint);
 
-    // Canvas
+    // Draw canvas
     m_canvas = new TouchCanvasView(this);
-    m_canvas->setMinimumHeight(260);
+    m_canvas->setMinimumHeight(200);
     root->addWidget(m_canvas, 1);
 
     // Coverage label
     m_lbl_coverage = new QLabel(QStringLiteral("Coverage: 0%"), this);
-    m_lbl_coverage->setStyleSheet(QStringLiteral("color: #e0e0e0; font-size: 13px;"));
+    m_lbl_coverage->setStyleSheet(QStringLiteral("color: #e0e0e0; font-size: 12px;"));
     m_lbl_coverage->setAlignment(Qt::AlignCenter);
     root->addWidget(m_lbl_coverage);
 
-    // Buttons: ใช้งานได้ / มีปัญหา
+    // Gesture test box
+    m_gestures = new GestureTestWidget(this);
+    root->addWidget(m_gestures);
+
+    // Gesture status
+    m_lbl_gesture_status = new QLabel(QStringLiteral("Gesture: 0 / 4"), this);
+    m_lbl_gesture_status->setStyleSheet(QStringLiteral("color: #aaaaaa; font-size: 11px;"));
+    m_lbl_gesture_status->setAlignment(Qt::AlignCenter);
+    root->addWidget(m_lbl_gesture_status);
+
+    // Buttons
     auto* btn_row = new QHBoxLayout();
 
     m_btn_pass = new QPushButton(QStringLiteral("✓  ใช้งานได้"), this);
@@ -80,8 +93,10 @@ void TouchpadView::buildUi()
     btn_row->addStretch(1);
     root->addLayout(btn_row);
 
-    connect(m_canvas, &TouchCanvasView::coverageChanged,
+    connect(m_canvas,   &TouchCanvasView::coverageChanged,
             this, &TouchpadView::onCoverageChanged);
+    connect(m_gestures, &GestureTestWidget::gestureDetected,
+            this, &TouchpadView::onGestureDetected);
     connect(m_btn_pass, &QPushButton::clicked, this, &TouchpadView::onPassClicked);
     connect(m_btn_fail, &QPushButton::clicked, this, &TouchpadView::onFailClicked);
 }
@@ -93,18 +108,34 @@ void TouchpadView::onCoverageChanged(float pct)
         QStringLiteral("Coverage: %1%").arg(static_cast<int>(pct)));
 }
 
+void TouchpadView::onGestureDetected()
+{
+    ++m_gesture_count;
+    if (m_gestures->allDone()) {
+        m_lbl_gesture_status->setText(QStringLiteral("Gesture: ✓ ครบทุก gesture"));
+        m_lbl_gesture_status->setStyleSheet(
+            QStringLiteral("color: #4caf50; font-size: 11px;"));
+    } else {
+        m_lbl_gesture_status->setText(
+            QStringLiteral("Gesture: %1 / 4").arg(m_gesture_count));
+    }
+}
+
 void TouchpadView::onPassClicked()
 {
+    const bool all_gesture = m_gestures->allDone();
     m_result.status  = TestStatus::Pass;
-    m_result.summary = QStringLiteral("Touchpad ปกติ (coverage %1%)")
-                           .arg(static_cast<int>(m_coverage));
+    m_result.summary = QStringLiteral("Touchpad ปกติ — coverage %1%%%2")
+        .arg(static_cast<int>(m_coverage))
+        .arg(all_gesture ? QStringLiteral(", gesture ครบ")
+                         : QStringLiteral(", gesture ไม่ครบ"));
     emit finished(m_result);
 }
 
 void TouchpadView::onFailClicked()
 {
     m_result.status  = TestStatus::Fail;
-    m_result.summary = QStringLiteral("Touchpad มีปัญหา (coverage %1%)")
+    m_result.summary = QStringLiteral("Touchpad มีปัญหา — coverage %1%")
                            .arg(static_cast<int>(m_coverage));
     m_result.issues.append(m_result.summary);
     emit finished(m_result);
