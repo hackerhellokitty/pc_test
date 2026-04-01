@@ -17,6 +17,7 @@
 #include "gui/audio_window.hpp"
 #include "gui/keyboard_window.hpp"
 #include "gui/network_window.hpp"
+#include "gui/physical_checklist_window.hpp"
 #include "gui/screen_window.hpp"
 #include "gui/storage_window.hpp"
 
@@ -56,6 +57,8 @@ private slots:
     void onNetworkFinished(nbi::ModuleResult result);
     void onAudioCardClicked();
     void onAudioFinished(nbi::ModuleResult result);
+    void onPhysicalCardClicked();
+    void onPhysicalFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();
@@ -85,6 +88,7 @@ private:
     QLabel*    m_lbl_os{nullptr};
 
     QCheckBox* m_chk_touchscreen{nullptr};   ///< Screen card — user declares touchscreen present
+    QCheckBox* m_chk_no_keyboard{nullptr};  ///< Keyboard card — tablet/no keyboard
 
     std::array<ModuleCard, kModuleCount> m_cards{};
 };

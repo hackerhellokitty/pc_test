@@ -54,10 +54,12 @@
 - [x] `gui/keyboard_view.cpp` — วาด keyboard map จาก JSON layout (`resources/keyboard_layouts/`)
 - [x] `WH_KEYBOARD_LL` hook — state per key: untested → pressed → marked-broken (ใช้ low-level hook แทน nativeScanCode เพราะ IME ดัก ` และปุ่มอื่น)
 - [x] "Mark ว่าเสีย" — คลิกขวาบนแผนผัง
-- [x] Layout JSON: EN standard 104 keys (ไม่รวม PrtSc/ScrLk/Pause เพราะ OS ดักก่อน, ไม่รวม NumLock เพราะมี LED)
+- [x] Layout JSON: EN standard 104 keys + TKL 87 keys (ไม่มี numpad)
+- [x] Layout selector dropdown ใน KeyboardWindow — เปลี่ยน layout ได้ระหว่างทดสอบ
+- [x] Checkbox "ไม่มีคีย์บอร์ด" ที่ dashboard card — tablet → Skipped ทันที
 
 **Touchpad Test**
-- [ ] `gui/touch_test_view.cpp` — QPainter canvas + stroke recording  ← next
+- [ ] `gui/touch_test_view.cpp` — QPainter canvas + stroke recording
 - [ ] Gap detection + coverage % (grid-based)
 - [ ] Gesture: tap, 2-finger scroll, right-click
 - [ ] `mouseMoveEvent` สำหรับ touchpad
@@ -126,9 +128,10 @@
 ### Tasks
 
 **Physical Checklist**
-- [ ] `gui/physical_checklist.cpp` — guided checklist พร้อมรูปประกอบ (`resources/checklist_images/`)
-- [ ] รายการ: Hinge, ตัวเครื่อง, รอยแตก, รอยขีดข่วน, ฝาปิดพอร์ต
-- [ ] บังคับทำครบก่อนกด Generate Report ได้
+- [x] `gui/physical_checklist_view.cpp` — guided checklist 8 รายการ (Lid, Hinge, Bezel, Palm Rest, Bottom, Ports, Keyboard, Screen)
+- [x] 3 ตัวเลือกต่อข้อ: ✓ ปกติ / ✗ พบปัญหา / — ไม่มี (N/A, เฉพาะ Hinge)
+- [x] Done disabled จนกว่าจะตอบครบ — progress counter realtime
+- [x] `gui/physical_checklist_window.cpp` — wrapper window
 
 **Scoring System**
 - [ ] กำหนด weight แต่ละโมดูล (แยก spec)

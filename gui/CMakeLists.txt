@@ -38,6 +38,10 @@ qt_add_executable(NBI
     audio_view.hpp
     audio_window.cpp
     audio_window.hpp
+    physical_checklist_view.cpp
+    physical_checklist_view.hpp
+    physical_checklist_window.cpp
+    physical_checklist_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc

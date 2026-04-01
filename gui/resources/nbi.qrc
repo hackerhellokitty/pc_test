@@ -7,5 +7,6 @@
     <qresource prefix="/">
         <!-- Icons and assets will be added here in later phases -->
         <file alias="keyboard_layouts/en_standard.json">../../resources/keyboard_layouts/en_standard.json</file>
+        <file alias="keyboard_layouts/en_tkl.json">../../resources/keyboard_layouts/en_tkl.json</file>
     </qresource>
 </RCC>

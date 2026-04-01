@@ -18,6 +18,7 @@
 #include "core/auto_scan.hpp"
 #include "gui/audio_window.hpp"
 #include "gui/network_window.hpp"
+#include "gui/physical_checklist_window.hpp"
 
 namespace nbi {
 
@@ -201,8 +202,15 @@ void MainDashboard::buildUi()
                     this, &MainDashboard::onScreenCardClicked);
         }
 
-        // Card index 1 = Keyboard — add a Start button
+        // Card index 1 = Keyboard — checkbox "ไม่มีคีย์บอร์ด" + Start button
         if (i == 1) {
+            m_chk_no_keyboard = new QCheckBox(QStringLiteral("ไม่มีคีย์บอร์ด"), card.frame);
+            m_chk_no_keyboard->setStyleSheet(QStringLiteral(
+                "QCheckBox { font-size: 11px; color: #cccccc; }"
+                "QCheckBox::indicator { width: 13px; height: 13px; }"
+            ));
+            card_layout->addWidget(m_chk_no_keyboard, 0, Qt::AlignCenter);
+
             auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
             btn_start->setStyleSheet(QStringLiteral(
                 "QPushButton { font-size: 11px; padding: 3px 10px;"
@@ -229,6 +237,21 @@ void MainDashboard::buildUi()
             card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
             connect(btn_start, &QPushButton::clicked,
                     this, &MainDashboard::onAudioCardClicked);
+        }
+
+        // Card index 9 = Physical — add a Start button
+        if (i == 9) {
+            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
+            btn_start->setStyleSheet(QStringLiteral(
+                "QPushButton { font-size: 11px; padding: 3px 10px;"
+                " border: 1px solid #555; border-radius: 4px;"
+                " background-color: #3a3a3a; color: #e0e0e0; }"
+                "QPushButton:hover { background-color: #4a4a4a; }"
+                "QPushButton:pressed { background-color: #2a2a2a; }"
+            ));
+            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
+            connect(btn_start, &QPushButton::clicked,
+                    this, &MainDashboard::onPhysicalCardClicked);
         }
 
         // Card index 8 = Network — add a Start button
@@ -428,6 +451,22 @@ void MainDashboard::onSmartFinished(nbi::ModuleResult result)
 }
 
 // ---------------------------------------------------------------------------
+// onPhysicalCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onPhysicalCardClicked()
+{
+    auto* w = new PhysicalChecklistWindow(this);
+    connect(w, &PhysicalChecklistWindow::finished, this, &MainDashboard::onPhysicalFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onPhysicalFinished(nbi::ModuleResult result)
+{
+    updateModuleCard(9, result);
+}
+
+// ---------------------------------------------------------------------------
 // onAudioCardClicked
 // ---------------------------------------------------------------------------
 void MainDashboard::onAudioCardClicked()
@@ -465,6 +504,15 @@ void MainDashboard::onNetworkFinished(nbi::ModuleResult result)
 // ---------------------------------------------------------------------------
 void MainDashboard::onKeyboardCardClicked()
 {
+    if (m_chk_no_keyboard && m_chk_no_keyboard->isChecked()) {
+        ModuleResult r;
+        r.label   = QStringLiteral("Keyboard");
+        r.status  = TestStatus::Skipped;
+        r.summary = QStringLiteral("ไม่มีคีย์บอร์ด");
+        onKeyboardFinished(r);
+        return;
+    }
+
     auto* w = new KeyboardWindow(this);
     connect(w, &KeyboardWindow::finished,
             this, &MainDashboard::onKeyboardFinished);
