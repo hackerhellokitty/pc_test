@@ -214,6 +214,21 @@ void MainDashboard::buildUi()
                     this, &MainDashboard::onKeyboardCardClicked);
         }
 
+        // Card index 4 = S.M.A.R.T. — add a Start button
+        if (i == 4) {
+            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
+            btn_start->setStyleSheet(QStringLiteral(
+                "QPushButton { font-size: 11px; padding: 3px 10px;"
+                " border: 1px solid #555; border-radius: 4px;"
+                " background-color: #3a3a3a; color: #e0e0e0; }"
+                "QPushButton:hover { background-color: #4a4a4a; }"
+                "QPushButton:pressed { background-color: #2a2a2a; }"
+            ));
+            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
+            connect(btn_start, &QPushButton::clicked,
+                    this, &MainDashboard::onSmartCardClicked);
+        }
+
         // Place in grid: 2 rows × 5 columns
         int col = i % 5;
         int grow = i / 5;
@@ -361,6 +376,23 @@ void MainDashboard::onScreenCardClicked()
 void MainDashboard::onScreenFinished(nbi::ModuleResult result)
 {
     updateModuleCard(0, result);
+}
+
+// ---------------------------------------------------------------------------
+// onSmartCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onSmartCardClicked()
+{
+    auto* w = new StorageWindow(this);
+    connect(w, &StorageWindow::finished,
+            this, &MainDashboard::onSmartFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onSmartFinished(nbi::ModuleResult result)
+{
+    updateModuleCard(4, result);
 }
 
 // ---------------------------------------------------------------------------

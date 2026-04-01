@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.25)
 # ---------------------------------------------------------------------------
 add_library(core STATIC
     auto_scan.cpp
+    storage_manager.cpp
 )
 
 target_include_directories(core

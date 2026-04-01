@@ -80,10 +80,11 @@
 - [ ] Threshold: Wear Level < 60% = flag
 
 **Storage S.M.A.R.T.**
-- [ ] `core/storage_manager.cpp` — `DeviceIoControl(IOCTL_STORAGE_QUERY_PROPERTY)`
-- [ ] Parse attributes: Reallocated (05), Pending (C5), Uncorrectable (C6) — ไม่ศูนย์ = flag ทันที
-- [ ] NVMe fallback: WMI `MSFT_Disk` HealthStatus
-- [ ] Detect `StorageAdapterProperty` ก่อนเลือก method (SATA vs NVMe)
+- [x] `core/storage_manager.cpp` — SATA: `SMART_RCV_DRIVE_DATA`, NVMe: `StorageDeviceProtocolSpecificProperty` Log Page 0x02
+- [x] Parse attributes: Reallocated (05), Pending (C5), Uncorrectable (C6) — ไม่ศูนย์ = flag ทันที
+- [x] WMI fallback: `root\wmi` → `MSStorageDriver_ATAPISmartData` (raw 512-byte block) + `MSStorageDriver_FailurePredictStatus`
+- [x] Detect `StorageAdapterProperty` ก่อนเลือก method (SATA vs NVMe)
+- [x] Model/Serial: WMI `Win32_DiskDrive` single session
 
 **Temperature Monitor**
 - [ ] `core/thermal_manager.cpp` — WMI `MSAcpi_ThermalZoneTemperature`

@@ -26,6 +26,10 @@ qt_add_executable(NBI
     screen_window.hpp
     touch_canvas_view.cpp
     touch_canvas_view.hpp
+    storage_view.cpp
+    storage_view.hpp
+    storage_window.cpp
+    storage_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc

@@ -16,6 +16,7 @@
 #include "common/types.hpp"
 #include "gui/keyboard_window.hpp"
 #include "gui/screen_window.hpp"
+#include "gui/storage_window.hpp"
 
 namespace nbi {
 
@@ -47,6 +48,8 @@ private slots:
     void onScreenFinished(nbi::ModuleResult result);
     void onKeyboardCardClicked();
     void onKeyboardFinished(nbi::ModuleResult result);
+    void onSmartCardClicked();
+    void onSmartFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();
