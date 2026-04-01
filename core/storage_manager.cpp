@@ -15,6 +15,7 @@
 #pragma comment(lib, "wbemuuid.lib")
 
 #include <string>
+#include <vector>
 
 #include <QString>
 #include <QStringList>
@@ -170,37 +171,31 @@ BusType StorageManager::detectBusType(void* h)
 // ---------------------------------------------------------------------------
 bool StorageManager::readSmartSata(void* h, DriveInfo& out)
 {
-    // Build SENDCMDINPARAMS
-#pragma pack(push, 1)
-    struct SendCmd {
-        SENDCMDINPARAMS params;
-        // no extra data needed for READ DATA command
-    };
-    struct RecvData {
-        SENDCMDOUTPARAMS header;
-        SmartDataBlock   data;
-    };
-#pragma pack(pop)
+    // SMART_RCV_DRIVE_DATA: output is SENDCMDOUTPARAMS where bBuffer[0] is the
+    // start of the 512-byte SMART data sector. Allocate header + 512 bytes flat.
+    const DWORD kOutSize = sizeof(SENDCMDOUTPARAMS) - 1 + 512;
 
-    SendCmd cmd{};
-    cmd.params.cBufferSize               = sizeof(SmartDataBlock);
-    cmd.params.irDriveRegs.bFeaturesReg  = SMART_READ_DATA;
-    cmd.params.irDriveRegs.bSectorCountReg = 1;
-    cmd.params.irDriveRegs.bSectorNumberReg = 1;
-    cmd.params.irDriveRegs.bCylLowReg    = SMART_CYL_LOW;
-    cmd.params.irDriveRegs.bCylHighReg   = SMART_CYL_HI;
-    cmd.params.irDriveRegs.bDriveHeadReg = 0xA0;
-    cmd.params.irDriveRegs.bCommandReg   = ATAID_SMART;
-    cmd.params.bDriveNumber              = 0;
+    SENDCMDINPARAMS cmd{};
+    cmd.cBufferSize               = 512;
+    cmd.irDriveRegs.bFeaturesReg  = SMART_READ_DATA;
+    cmd.irDriveRegs.bSectorCountReg  = 1;
+    cmd.irDriveRegs.bSectorNumberReg = 1;
+    cmd.irDriveRegs.bCylLowReg    = SMART_CYL_LOW;
+    cmd.irDriveRegs.bCylHighReg   = SMART_CYL_HI;
+    cmd.irDriveRegs.bDriveHeadReg = 0xA0;
+    cmd.irDriveRegs.bCommandReg   = ATAID_SMART;
+    cmd.bDriveNumber              = 0;
 
-    RecvData recv{};
+    std::vector<uint8_t> out_buf(kOutSize, 0);
     DWORD returned = 0;
     if (!DeviceIoControl(h, SMART_RCV_DRIVE_DATA,
                          &cmd, sizeof(cmd),
-                         &recv, sizeof(recv), &returned, nullptr))
+                         out_buf.data(), kOutSize, &returned, nullptr))
         return false;
 
-    const SmartDataBlock& blk = recv.data;
+    // bBuffer[0] of SENDCMDOUTPARAMS is the start of the 512-byte data sector
+    const uint8_t* sector = out_buf.data() + offsetof(SENDCMDOUTPARAMS, bBuffer);
+    const auto& blk = *reinterpret_cast<const SmartDataBlock*>(sector);
 
     for (const SmartAttributeEntry& e : blk.attrs) {
         if (e.id == 0) continue;
@@ -228,62 +223,56 @@ bool StorageManager::readSmartSata(void* h, DriveInfo& out)
 // ---------------------------------------------------------------------------
 bool StorageManager::readSmartNvme(void* h, DriveInfo& out)
 {
-    // NVMe SMART log (Log Page 0x02) via protocol-specific query
-#pragma pack(push, 1)
-    struct NvmeSmartLog {
-        uint8_t  critical_warning;
-        uint16_t composite_temp;   // Kelvin
-        uint8_t  avail_spare;
-        uint8_t  avail_spare_threshold;
-        uint8_t  percent_used;
-        uint8_t  endurance_group_crit_warn;
-        uint8_t  reserved1[25];
-        uint8_t  media_errors[16];  // 128-bit uint; we use lower 32 bits
-        uint8_t  num_err_log_entries[16];
-        uint8_t  reserved2[320];
-    };
-#pragma pack(pop)
+    // NVMe SMART/Health Information Log — Log Page 0x02
+    // Single shared buffer for in+out (same pattern as WD/Samsung tools).
+    // STORAGE_PROTOCOL_SPECIFIC_DATA overlaps AdditionalParameters[0]
+    // by positioning it at (buf + sizeof(STORAGE_PROPERTY_QUERY) - sizeof(DWORD)).
+    const DWORD kBufSize = sizeof(STORAGE_PROPERTY_QUERY)
+                         + sizeof(STORAGE_PROTOCOL_SPECIFIC_DATA)
+                         + 512;  // 512-byte NVMe log page
 
-    struct QueryBuf {
-        STORAGE_PROPERTY_QUERY            query;
-        STORAGE_PROTOCOL_SPECIFIC_DATA    protocol_data;
-    } qbuf{};
+    std::vector<uint8_t> buf(kBufSize, 0);
 
-    qbuf.query.PropertyId = StorageDeviceProtocolSpecificProperty;
-    qbuf.query.QueryType  = PropertyStandardQuery;
+    auto* query       = reinterpret_cast<STORAGE_PROPERTY_QUERY*>(buf.data());
+    query->PropertyId = StorageDeviceProtocolSpecificProperty;
+    query->QueryType  = PropertyStandardQuery;
 
-    auto& pd = qbuf.protocol_data;
-    pd.ProtocolType               = ProtocolTypeNvme;
-    pd.DataType                   = NVMeDataTypeLogPage;
-    pd.ProtocolDataRequestValue   = 0x02;  // SMART / Health Information Log
-    pd.ProtocolDataRequestSubValue = 0;
-    pd.ProtocolDataOffset         = sizeof(STORAGE_PROTOCOL_SPECIFIC_DATA);
-    pd.ProtocolDataLength         = sizeof(NvmeSmartLog);
+    // Overlap: psd starts at AdditionalParameters (last DWORD of STORAGE_PROPERTY_QUERY)
+    auto* psd = reinterpret_cast<STORAGE_PROTOCOL_SPECIFIC_DATA*>(
+        buf.data() + sizeof(STORAGE_PROPERTY_QUERY) - sizeof(DWORD));
+    psd->ProtocolType                = ProtocolTypeNvme;
+    psd->DataType                    = NVMeDataTypeLogPage;
+    psd->ProtocolDataRequestValue    = 0x02;  // SMART/Health Information Log
+    psd->ProtocolDataRequestSubValue = 0;
+    psd->ProtocolDataOffset          = sizeof(STORAGE_PROTOCOL_SPECIFIC_DATA);
+    psd->ProtocolDataLength          = 512;
 
-    constexpr DWORD kOutSize = sizeof(STORAGE_PROPERTY_QUERY)
-                             + sizeof(STORAGE_PROTOCOL_SPECIFIC_DATA)
-                             + sizeof(NvmeSmartLog);
-    uint8_t out_buf[kOutSize]{};
     DWORD returned = 0;
-
     if (!DeviceIoControl(h, IOCTL_STORAGE_QUERY_PROPERTY,
-                         &qbuf, sizeof(qbuf),
-                         out_buf, kOutSize, &returned, nullptr))
+                         buf.data(), kBufSize,
+                         buf.data(), kBufSize, &returned, nullptr))
         return false;
 
-    const auto* log = reinterpret_cast<const NvmeSmartLog*>(
-        out_buf + sizeof(STORAGE_PROPERTY_QUERY) + sizeof(STORAGE_PROTOCOL_SPECIFIC_DATA)
-    );
+    if (returned < sizeof(STORAGE_PROPERTY_QUERY) + sizeof(DWORD))
+        return false;
 
-    out.percent_used  = log->percent_used;
-    // media_errors is a 128-bit LE integer; take lower 32 bits
-    out.media_errors  = static_cast<uint32_t>(log->media_errors[0])
-                      | (static_cast<uint32_t>(log->media_errors[1]) << 8)
-                      | (static_cast<uint32_t>(log->media_errors[2]) << 16)
-                      | (static_cast<uint32_t>(log->media_errors[3]) << 24);
+    // Log data starts at psd + psd->ProtocolDataOffset
+    const uint8_t* d = reinterpret_cast<const uint8_t*>(psd) + psd->ProtocolDataOffset;
 
-    if (log->media_errors[0] != 0 || log->media_errors[1] != 0)
-        out.uncorrectable = out.media_errors;  // map to unified field
+    // NVMe spec byte layout:
+    // byte 0     : critical warning
+    // bytes 1-2  : composite temperature (Kelvin LE)
+    // byte 3     : available spare %
+    // byte 4     : available spare threshold %
+    // byte 5     : percent used (0-255, typically 0-100)
+    out.percent_used = d[5];
+
+    // bytes 160-175 : media and data integrity errors (128-bit LE)
+    out.media_errors = static_cast<uint32_t>(d[160])
+                     | (static_cast<uint32_t>(d[161]) << 8)
+                     | (static_cast<uint32_t>(d[162]) << 16)
+                     | (static_cast<uint32_t>(d[163]) << 24);
+    if (out.media_errors) out.uncorrectable = out.media_errors;
 
     out.smart_available = true;
     return true;
