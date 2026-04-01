@@ -22,6 +22,7 @@
 #include "gui/screen_window.hpp"
 #include "gui/storage_window.hpp"
 #include "gui/thermal_window.hpp"
+#include "gui/touchpad_window.hpp"
 
 namespace nbi {
 
@@ -65,6 +66,8 @@ private slots:
     void onPhysicalFinished(nbi::ModuleResult result);
     void onThermalCardClicked();
     void onThermalFinished(nbi::ModuleResult result);
+    void onTouchpadCardClicked();
+    void onTouchpadFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();
@@ -95,7 +98,8 @@ private:
 
     QCheckBox* m_chk_touchscreen{nullptr};   ///< Screen card — user declares touchscreen present
     QCheckBox* m_chk_no_keyboard{nullptr};  ///< Keyboard card — tablet/no keyboard
-    QCheckBox* m_chk_no_battery{nullptr};  ///< Battery card — desktop PC/no battery
+    QCheckBox* m_chk_no_battery{nullptr};   ///< Battery card — desktop PC/no battery
+    QCheckBox* m_chk_no_touchpad{nullptr};  ///< Touchpad card — PC/tablet no touchpad
 
     std::array<ModuleCard, kModuleCount> m_cards{};
 };

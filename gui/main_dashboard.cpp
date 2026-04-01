@@ -21,6 +21,7 @@
 #include "gui/network_window.hpp"
 #include "gui/physical_checklist_window.hpp"
 #include "gui/thermal_window.hpp"
+#include "gui/touchpad_window.hpp"
 
 namespace nbi {
 
@@ -224,6 +225,28 @@ void MainDashboard::buildUi()
             card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
             connect(btn_start, &QPushButton::clicked,
                     this, &MainDashboard::onKeyboardCardClicked);
+        }
+
+        // Card index 2 = Touchpad — checkbox "ไม่มี Touchpad" + Start button
+        if (i == 2) {
+            m_chk_no_touchpad = new QCheckBox(QStringLiteral("ไม่มี Touchpad"), card.frame);
+            m_chk_no_touchpad->setStyleSheet(QStringLiteral(
+                "QCheckBox { font-size: 11px; color: #cccccc; }"
+                "QCheckBox::indicator { width: 13px; height: 13px; }"
+            ));
+            card_layout->addWidget(m_chk_no_touchpad, 0, Qt::AlignCenter);
+
+            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
+            btn_start->setStyleSheet(QStringLiteral(
+                "QPushButton { font-size: 11px; padding: 3px 10px;"
+                " border: 1px solid #555; border-radius: 4px;"
+                " background-color: #3a3a3a; color: #e0e0e0; }"
+                "QPushButton:hover { background-color: #4a4a4a; }"
+                "QPushButton:pressed { background-color: #2a2a2a; }"
+            ));
+            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
+            connect(btn_start, &QPushButton::clicked,
+                    this, &MainDashboard::onTouchpadCardClicked);
         }
 
         // Card index 3 = Battery — checkbox "เป็น PC" + Start button
@@ -578,6 +601,31 @@ void MainDashboard::onThermalCardClicked()
 void MainDashboard::onThermalFinished(nbi::ModuleResult result)
 {
     updateModuleCard(5, result);
+}
+
+// ---------------------------------------------------------------------------
+// onTouchpadCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onTouchpadCardClicked()
+{
+    if (m_chk_no_touchpad && m_chk_no_touchpad->isChecked()) {
+        ModuleResult r;
+        r.label   = QStringLiteral("Touchpad");
+        r.status  = TestStatus::Skipped;
+        r.summary = QStringLiteral("ไม่มี Touchpad");
+        onTouchpadFinished(r);
+        return;
+    }
+
+    auto* w = new TouchpadWindow(this);
+    connect(w, &TouchpadWindow::finished, this, &MainDashboard::onTouchpadFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onTouchpadFinished(nbi::ModuleResult result)
+{
+    updateModuleCard(2, result);
 }
 
 // ---------------------------------------------------------------------------

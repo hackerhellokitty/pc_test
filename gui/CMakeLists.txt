@@ -50,6 +50,10 @@ qt_add_executable(NBI
     thermal_view.hpp
     thermal_window.cpp
     thermal_window.hpp
+    touchpad_view.cpp
+    touchpad_view.hpp
+    touchpad_window.cpp
+    touchpad_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc
