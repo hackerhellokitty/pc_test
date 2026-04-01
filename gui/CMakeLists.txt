@@ -38,6 +38,10 @@ qt_add_executable(NBI
     audio_view.hpp
     audio_window.cpp
     audio_window.hpp
+    battery_view.cpp
+    battery_view.hpp
+    battery_window.cpp
+    battery_window.hpp
     physical_checklist_view.cpp
     physical_checklist_view.hpp
     physical_checklist_window.cpp
@@ -50,9 +54,13 @@ qt_add_executable(NBI
 set_target_properties(NBI PROPERTIES
     WIN32_EXECUTABLE TRUE          # Subsystem WINDOWS (no console)
     OUTPUT_NAME "NotebookInspector"
-    # Ensure AUTOMOC finds headers next to sources
     AUTOGEN_TARGET_DEPENDS ""
 )
+
+# Disable MSVC's auto-generated manifest — we embed our own via nbi.rc
+if(MSVC)
+    target_link_options(NBI PRIVATE "/MANIFEST:NO")
+endif()
 
 # Make "gui/" a known include root so #include "gui/main_dashboard.hpp" works
 target_include_directories(NBI

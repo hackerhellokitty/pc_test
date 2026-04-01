@@ -77,9 +77,13 @@
 ### Tasks
 
 **Battery Health**
-- [ ] `core/battery_manager.cpp` — WMI `BatteryFullCapacityTermulated`
-- [ ] Wear Level = `(FullChargeCapacity / DesignCapacity) × 100` + Cycle Count
-- [ ] Threshold: Wear Level < 60% = flag
+- [x] `core/battery_manager.cpp` — WMI `BatteryFullChargeCapacity` + `BatteryStaticData`
+- [x] Wear Level = `(FullChargeCapacity / DesignCapacity) × 100` + Cycle Count
+- [x] Threshold: Wear Level < 60% = flag
+- [x] `gui/battery_view.cpp` + `battery_window.cpp` — Wear Level bar, Design/Full/Cycle stats
+- [x] Checkbox "เป็น PC / ไม่มีแบต" ที่ dashboard card → Skipped ทันที
+- [x] UAC manifest embed ใน `.rc` + `/MANIFEST:NO` — requireAdministrator ทุกครั้ง
+- [ ] รอ test จริง
 
 **Storage S.M.A.R.T.**
 - [x] `core/storage_manager.cpp` — SATA: `SMART_RCV_DRIVE_DATA`, NVMe: `StorageDeviceProtocolSpecificProperty` Log Page 0x02

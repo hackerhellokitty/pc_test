@@ -15,6 +15,7 @@
 
 #include "common/types.hpp"
 #include "gui/audio_window.hpp"
+#include "gui/battery_window.hpp"
 #include "gui/keyboard_window.hpp"
 #include "gui/network_window.hpp"
 #include "gui/physical_checklist_window.hpp"
@@ -57,6 +58,8 @@ private slots:
     void onNetworkFinished(nbi::ModuleResult result);
     void onAudioCardClicked();
     void onAudioFinished(nbi::ModuleResult result);
+    void onBatteryCardClicked();
+    void onBatteryFinished(nbi::ModuleResult result);
     void onPhysicalCardClicked();
     void onPhysicalFinished(nbi::ModuleResult result);
 
@@ -89,6 +92,7 @@ private:
 
     QCheckBox* m_chk_touchscreen{nullptr};   ///< Screen card — user declares touchscreen present
     QCheckBox* m_chk_no_keyboard{nullptr};  ///< Keyboard card — tablet/no keyboard
+    QCheckBox* m_chk_no_battery{nullptr};  ///< Battery card — desktop PC/no battery
 
     std::array<ModuleCard, kModuleCount> m_cards{};
 };

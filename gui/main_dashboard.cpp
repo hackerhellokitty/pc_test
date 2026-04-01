@@ -17,6 +17,7 @@
 
 #include "core/auto_scan.hpp"
 #include "gui/audio_window.hpp"
+#include "gui/battery_window.hpp"
 #include "gui/network_window.hpp"
 #include "gui/physical_checklist_window.hpp"
 
@@ -222,6 +223,28 @@ void MainDashboard::buildUi()
             card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
             connect(btn_start, &QPushButton::clicked,
                     this, &MainDashboard::onKeyboardCardClicked);
+        }
+
+        // Card index 3 = Battery — checkbox "เป็น PC" + Start button
+        if (i == 3) {
+            m_chk_no_battery = new QCheckBox(QStringLiteral("เป็น PC / ไม่มีแบต"), card.frame);
+            m_chk_no_battery->setStyleSheet(QStringLiteral(
+                "QCheckBox { font-size: 11px; color: #cccccc; }"
+                "QCheckBox::indicator { width: 13px; height: 13px; }"
+            ));
+            card_layout->addWidget(m_chk_no_battery, 0, Qt::AlignCenter);
+
+            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
+            btn_start->setStyleSheet(QStringLiteral(
+                "QPushButton { font-size: 11px; padding: 3px 10px;"
+                " border: 1px solid #555; border-radius: 4px;"
+                " background-color: #3a3a3a; color: #e0e0e0; }"
+                "QPushButton:hover { background-color: #4a4a4a; }"
+                "QPushButton:pressed { background-color: #2a2a2a; }"
+            ));
+            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
+            connect(btn_start, &QPushButton::clicked,
+                    this, &MainDashboard::onBatteryCardClicked);
         }
 
         // Card index 7 = Audio — add a Start button
@@ -448,6 +471,31 @@ void MainDashboard::onSmartCardClicked()
 void MainDashboard::onSmartFinished(nbi::ModuleResult result)
 {
     updateModuleCard(4, result);
+}
+
+// ---------------------------------------------------------------------------
+// onBatteryCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onBatteryCardClicked()
+{
+    if (m_chk_no_battery && m_chk_no_battery->isChecked()) {
+        ModuleResult r;
+        r.label   = QStringLiteral("Battery");
+        r.status  = TestStatus::Skipped;
+        r.summary = QStringLiteral("เป็น PC / ไม่มีแบต");
+        onBatteryFinished(r);
+        return;
+    }
+
+    auto* w = new BatteryWindow(this);
+    connect(w, &BatteryWindow::finished, this, &MainDashboard::onBatteryFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onBatteryFinished(nbi::ModuleResult result)
+{
+    updateModuleCard(3, result);
 }
 
 // ---------------------------------------------------------------------------
