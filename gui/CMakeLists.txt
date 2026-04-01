@@ -46,6 +46,10 @@ qt_add_executable(NBI
     physical_checklist_view.hpp
     physical_checklist_window.cpp
     physical_checklist_window.hpp
+    thermal_view.cpp
+    thermal_view.hpp
+    thermal_window.cpp
+    thermal_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc

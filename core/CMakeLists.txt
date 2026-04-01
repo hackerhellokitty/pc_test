@@ -9,6 +9,7 @@ add_library(core STATIC
     network_manager.cpp
     audio_manager.cpp
     battery_manager.cpp
+    thermal_manager.cpp
 )
 
 target_include_directories(core

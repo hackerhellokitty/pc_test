@@ -21,6 +21,7 @@
 #include "gui/physical_checklist_window.hpp"
 #include "gui/screen_window.hpp"
 #include "gui/storage_window.hpp"
+#include "gui/thermal_window.hpp"
 
 namespace nbi {
 
@@ -62,6 +63,8 @@ private slots:
     void onBatteryFinished(nbi::ModuleResult result);
     void onPhysicalCardClicked();
     void onPhysicalFinished(nbi::ModuleResult result);
+    void onThermalCardClicked();
+    void onThermalFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();

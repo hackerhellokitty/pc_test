@@ -20,6 +20,7 @@
 #include "gui/battery_window.hpp"
 #include "gui/network_window.hpp"
 #include "gui/physical_checklist_window.hpp"
+#include "gui/thermal_window.hpp"
 
 namespace nbi {
 
@@ -292,6 +293,21 @@ void MainDashboard::buildUi()
                     this, &MainDashboard::onNetworkCardClicked);
         }
 
+        // Card index 5 = Temperature — add a Start button
+        if (i == 5) {
+            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
+            btn_start->setStyleSheet(QStringLiteral(
+                "QPushButton { font-size: 11px; padding: 3px 10px;"
+                " border: 1px solid #555; border-radius: 4px;"
+                " background-color: #3a3a3a; color: #e0e0e0; }"
+                "QPushButton:hover { background-color: #4a4a4a; }"
+                "QPushButton:pressed { background-color: #2a2a2a; }"
+            ));
+            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
+            connect(btn_start, &QPushButton::clicked,
+                    this, &MainDashboard::onThermalCardClicked);
+        }
+
         // Card index 4 = S.M.A.R.T. — add a Start button
         if (i == 4) {
             auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
@@ -321,7 +337,8 @@ void MainDashboard::buildUi()
     root_layout->addWidget(modules_group, 1);
 
     // Status bar
-    statusBar()->showMessage(QStringLiteral("Ready"));
+    statusBar()->showMessage(
+        QStringLiteral("Notebook Inspector  |  Windows 10/11 x64 only  |  Requires Administrator"));
 }
 
 // ---------------------------------------------------------------------------
@@ -545,6 +562,22 @@ void MainDashboard::onNetworkCardClicked()
 void MainDashboard::onNetworkFinished(nbi::ModuleResult result)
 {
     updateModuleCard(8, result);
+}
+
+// ---------------------------------------------------------------------------
+// onThermalCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onThermalCardClicked()
+{
+    auto* w = new ThermalWindow(this);
+    connect(w, &ThermalWindow::finished, this, &MainDashboard::onThermalFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onThermalFinished(nbi::ModuleResult result)
+{
+    updateModuleCard(5, result);
 }
 
 // ---------------------------------------------------------------------------
