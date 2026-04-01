@@ -14,7 +14,9 @@
 #include <QVBoxLayout>
 
 #include "common/types.hpp"
+#include "gui/audio_window.hpp"
 #include "gui/keyboard_window.hpp"
+#include "gui/network_window.hpp"
 #include "gui/screen_window.hpp"
 #include "gui/storage_window.hpp"
 
@@ -50,6 +52,10 @@ private slots:
     void onKeyboardFinished(nbi::ModuleResult result);
     void onSmartCardClicked();
     void onSmartFinished(nbi::ModuleResult result);
+    void onNetworkCardClicked();
+    void onNetworkFinished(nbi::ModuleResult result);
+    void onAudioCardClicked();
+    void onAudioFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();

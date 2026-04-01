@@ -30,6 +30,14 @@ qt_add_executable(NBI
     storage_view.hpp
     storage_window.cpp
     storage_window.hpp
+    network_view.cpp
+    network_view.hpp
+    network_window.cpp
+    network_window.hpp
+    audio_view.cpp
+    audio_view.hpp
+    audio_window.cpp
+    audio_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc

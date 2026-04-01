@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 3.25)
 add_library(core STATIC
     auto_scan.cpp
     storage_manager.cpp
+    network_manager.cpp
+    audio_manager.cpp
 )
 
 target_include_directories(core
@@ -17,9 +19,10 @@ target_link_libraries(core
     PUBLIC
         common
         Qt6::Core
+        Qt6::Multimedia
 )
 
 # WMI link dependency (Windows only)
 if(WIN32)
-    target_link_libraries(core PUBLIC wbemuuid)
+    target_link_libraries(core PUBLIC wbemuuid ws2_32 iphlpapi wlanapi)
 endif()

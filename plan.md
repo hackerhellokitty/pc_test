@@ -100,13 +100,18 @@
 - [ ] Manual mark พอร์ตที่ไม่ตอบสนอง
 
 **Audio / Mic**
-- [ ] `core/audio_manager.cpp` — `QAudioSource` + `QAudioSink` loopback
-- [ ] Waveform display (RMS per frame) + L/R channel test
-- [ ] Handle ไม่มี mic/speaker — skip gracefully
+- [x] `core/audio_manager.cpp` — enumerate output devices (`QMediaDevices::audioOutputs`)
+- [x] `gui/audio_view.cpp` — DeviceTestCard per device: sine 1 kHz → Play → ผู้ใช้ confirm ได้ยิน/ไม่ได้ยิน
+- [x] `gui/audio_window.cpp` — wrapper window
+- [x] Handle ไม่มี speaker — skip gracefully
+- [ ] Mic test — `QAudioSource` + waveform RMS (ยังไม่ได้ทำ)
 
 **Connectivity**
-- [ ] `core/network_manager.cpp` — `GetAdaptersAddresses` + `IcmpSendEcho` (timeout 500ms)
-- [ ] No adapter → status `NoInterface` → badge "ข้าม" สีเทา ไม่ใช่ error
+- [x] `core/network_manager.cpp` — `GetAdaptersAddresses` + `IcmpSendEcho` (timeout 500ms)
+- [x] No adapter → status `NoInterface` → badge "ข้าม" สีเทา ไม่ใช่ error
+- [x] Wi-Fi: `WlanGetAvailableNetworkList` — scan SSIDs รอบข้าง + signal quality bar + connected SSID highlight
+- [x] `gui/network_view.cpp` + `network_window.cpp` — adapter cards, Wi-Fi section, ping rows
+- [ ] รอ test จริง (Wi-Fi + LAN)
 
 ### Deliverable
 
