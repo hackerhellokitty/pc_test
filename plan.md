@@ -59,10 +59,11 @@
 - [x] Checkbox "ไม่มีคีย์บอร์ด" ที่ dashboard card — tablet → Skipped ทันที
 
 **Touchpad Test**
-- [ ] `gui/touch_test_view.cpp` — QPainter canvas + stroke recording
-- [ ] Gap detection + coverage % (grid-based)
-- [ ] Gesture: tap, 2-finger scroll, right-click
-- [ ] `mouseMoveEvent` สำหรับ touchpad
+- [x] `gui/touchpad_view.cpp` — QPainter canvas + stroke recording (reuse TouchCanvasView)
+- [x] Coverage % (grid-based 20×15)
+- [x] Gesture: single click, double click, right click, scroll — auto-detect
+- [x] `mouseMoveEvent` สำหรับ touchpad
+- [x] Checkbox "ไม่มี Touchpad" ที่ dashboard card → Skipped ทันที
 
 ### Deliverable
 
@@ -93,11 +94,11 @@
 - [x] Model/Serial: WMI `Win32_DiskDrive` single session
 
 **Temperature Monitor**
-- [ ] `core/thermal_manager.cpp` — WMI `MSAcpi_ThermalZoneTemperature`
-- [ ] Idle 2 นาที → stress loop 1 นาที → คำนวณ idle_avg, stress_peak, delta
-- [ ] `gui/thermal_view.cpp` — gauge + timeline
-- [ ] Threshold: Peak > 95°C = red, Delta > 40°C = fan/thermal paste flag
-- [ ] Handle OEM ไม่มี sensor — skip gracefully ไม่หักคะแนน
+- [x] `core/thermal_manager.cpp` — WMI `MSAcpi_ThermalZoneTemperature`
+- [x] `gui/thermal_view.cpp` — zone cards + progress bar สี
+- [x] Threshold: Peak > 95°C = red
+- [x] Handle OEM ไม่มี sensor — skip gracefully ไม่หักคะแนน
+- [ ] รอ test จริงบน laptop (desktop AMD ไม่มี CPU die temp ผ่าน ACPI)
 
 **Ports**
 - [ ] `core/device_watcher.cpp` — `RegisterDeviceNotification` + `WM_DEVICECHANGE`
