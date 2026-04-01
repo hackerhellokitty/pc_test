@@ -56,6 +56,10 @@ qt_add_executable(NBI
     touchpad_window.hpp
     gesture_test_widget.cpp
     gesture_test_widget.hpp
+    mic_view.cpp
+    mic_view.hpp
+    mic_window.cpp
+    mic_window.hpp
     resources/nbi.qrc
     # Win32 resource script: embeds UAC manifest + version info
     ${CMAKE_SOURCE_DIR}/nbi.rc

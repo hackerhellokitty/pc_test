@@ -23,6 +23,7 @@
 #include "gui/storage_window.hpp"
 #include "gui/thermal_window.hpp"
 #include "gui/touchpad_window.hpp"
+#include "gui/mic_window.hpp"
 
 namespace nbi {
 
@@ -68,6 +69,8 @@ private slots:
     void onThermalFinished(nbi::ModuleResult result);
     void onTouchpadCardClicked();
     void onTouchpadFinished(nbi::ModuleResult result);
+    void onMicCardClicked();
+    void onMicFinished(nbi::ModuleResult result);
 
 private:
     void loadDeviceInfo();

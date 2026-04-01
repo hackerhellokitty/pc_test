@@ -22,6 +22,7 @@
 #include "gui/physical_checklist_window.hpp"
 #include "gui/thermal_window.hpp"
 #include "gui/touchpad_window.hpp"
+#include "gui/mic_window.hpp"
 
 namespace nbi {
 
@@ -271,19 +272,27 @@ void MainDashboard::buildUi()
                     this, &MainDashboard::onBatteryCardClicked);
         }
 
-        // Card index 7 = Audio — add a Start button
+        // Card index 7 = Audio — Speaker + Mic buttons
         if (i == 7) {
-            auto* btn_start = new QPushButton(QStringLiteral("Start"), card.frame);
-            btn_start->setStyleSheet(QStringLiteral(
+            const QString btn_style = QStringLiteral(
                 "QPushButton { font-size: 11px; padding: 3px 10px;"
                 " border: 1px solid #555; border-radius: 4px;"
                 " background-color: #3a3a3a; color: #e0e0e0; }"
                 "QPushButton:hover { background-color: #4a4a4a; }"
                 "QPushButton:pressed { background-color: #2a2a2a; }"
-            ));
-            card_layout->addWidget(btn_start, 0, Qt::AlignCenter);
-            connect(btn_start, &QPushButton::clicked,
+            );
+            auto* btn_row7 = new QHBoxLayout();
+            auto* btn_spk = new QPushButton(QStringLiteral("Speaker"), card.frame);
+            btn_spk->setStyleSheet(btn_style);
+            auto* btn_mic = new QPushButton(QStringLiteral("Mic"), card.frame);
+            btn_mic->setStyleSheet(btn_style);
+            btn_row7->addWidget(btn_spk);
+            btn_row7->addWidget(btn_mic);
+            card_layout->addLayout(btn_row7);
+            connect(btn_spk, &QPushButton::clicked,
                     this, &MainDashboard::onAudioCardClicked);
+            connect(btn_mic, &QPushButton::clicked,
+                    this, &MainDashboard::onMicCardClicked);
         }
 
         // Card index 9 = Physical — add a Start button
@@ -567,6 +576,24 @@ void MainDashboard::onAudioCardClicked()
 
 void MainDashboard::onAudioFinished(nbi::ModuleResult result)
 {
+    updateModuleCard(7, result);
+}
+
+// ---------------------------------------------------------------------------
+// onMicCardClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onMicCardClicked()
+{
+    auto* w = new MicWindow(this);
+    connect(w, &MicWindow::finished, this, &MainDashboard::onMicFinished);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+}
+
+void MainDashboard::onMicFinished(nbi::ModuleResult result)
+{
+    // Mic shares card 7 with speaker — update only if worse
+    result.label = QStringLiteral("Audio/Mic");
     updateModuleCard(7, result);
 }
 
