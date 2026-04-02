@@ -44,6 +44,15 @@ void StorageView::buildUi()
     }
     root->addWidget(lbl_title);
 
+    // Description
+    auto* lbl_desc = new QLabel(
+        QStringLiteral("อ่านข้อมูล S.M.A.R.T. จากดิสก์ผ่าน DeviceIoControl — "
+                       "ตรวจหา Reallocated Sectors (05), Pending (C5), Uncorrectable (C6)\n"
+                       "หากค่าใดไม่เป็นศูนย์ หมายความว่าดิสก์เริ่มเสียหาย ควรสำรองข้อมูลทันที"), this);
+    lbl_desc->setStyleSheet(QStringLiteral("color: #aaaaaa; font-size: 12px;"));
+    lbl_desc->setWordWrap(true);
+    root->addWidget(lbl_desc);
+
     // Status line
     m_lbl_status = new QLabel(
         QStringLiteral("กด Scan เพื่อเริ่มอ่าน SMART data"), this);

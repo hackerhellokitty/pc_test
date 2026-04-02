@@ -10,14 +10,58 @@
 // ---------------------------------------------------------------------------
 
 #include <windows.h>
+#include <shellapi.h>
 
 #include <QApplication>
 #include <QMessageBox>
 
 #include "gui/main_dashboard.hpp"
 
+// ---------------------------------------------------------------------------
+// isRunningAsAdmin — checks if current process has admin token
+// ---------------------------------------------------------------------------
+static bool isRunningAsAdmin()
+{
+    BOOL is_admin = FALSE;
+    PSID admin_group = nullptr;
+    SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
+
+    if (AllocateAndInitializeSid(
+            &nt_authority, 2,
+            SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
+            0, 0, 0, 0, 0, 0,
+            &admin_group))
+    {
+        CheckTokenMembership(nullptr, admin_group, &is_admin);
+        FreeSid(admin_group);
+    }
+    return is_admin != FALSE;
+}
+
 int main(int argc, char* argv[])
 {
+    // ------------------------------------------------------------------
+    // Admin elevation check (belt-and-suspenders on top of the manifest)
+    // The manifest requests elevation, so this should always be true.
+    // If somehow not elevated, offer to re-launch as admin.
+    // ------------------------------------------------------------------
+    if (!isRunningAsAdmin()) {
+        const int ans = MessageBoxW(
+            nullptr,
+            L"Notebook Inspector ต้องการสิทธิ์ Administrator\n\n"
+            L"กด Yes เพื่อรีสตาร์ทในฐานะ Administrator\n"
+            L"กด No เพื่อออกจากโปรแกรม",
+            L"ต้องการสิทธิ์ Administrator",
+            MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1
+        );
+        if (ans == IDYES) {
+            wchar_t path[MAX_PATH];
+            GetModuleFileNameW(nullptr, path, MAX_PATH);
+            ShellExecuteW(nullptr, L"runas", path, nullptr, nullptr, SW_SHOWNORMAL);
+        }
+        return 1;
+    }
+
     // ------------------------------------------------------------------
     // Single-instance check
     // ------------------------------------------------------------------
@@ -49,6 +93,7 @@ int main(int argc, char* argv[])
     app.setApplicationName(QStringLiteral("Notebook Inspector"));
     app.setApplicationVersion(QStringLiteral("1.0.0"));
     app.setOrganizationName(QStringLiteral("NBI Project"));
+    app.setWindowIcon(QIcon(QStringLiteral(":/icons/app.ico")));
 
     // Dark palette for a diagnostic-tool aesthetic
     app.setStyle(QStringLiteral("Fusion"));

@@ -5,15 +5,20 @@
 #include "gui/main_dashboard.hpp"
 
 #include <QApplication>
+#include <QFutureWatcher>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QMessageBox>
+#include <QProcess>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSizePolicy>
 #include <QStatusBar>
 #include <QString>
 #include <QVBoxLayout>
+#include <QtConcurrent/QtConcurrent>
 
 #include "core/auto_scan.hpp"
 #include "gui/audio_window.hpp"
@@ -52,8 +57,7 @@ MainDashboard::MainDashboard(QWidget* parent)
     setMinimumSize(900, 600);
 
     buildUi();
-    loadDeviceInfo();
-    populateDeviceLabels();
+    loadDeviceInfo();  // async — populateDeviceLabels() called in onScanFinished()
 }
 
 // ---------------------------------------------------------------------------
@@ -385,7 +389,10 @@ void MainDashboard::buildUi()
 
     root_layout->addWidget(modules_group, 1);
 
-    // Summary / Export button
+    // Bottom button row: Summary (left) + Reset PC (right)
+    auto* bottom_row = new QHBoxLayout();
+    bottom_row->setSpacing(12);
+
     auto* btn_summary = new QPushButton(QStringLiteral("สรุปผล + Export Report"), central);
     btn_summary->setStyleSheet(QStringLiteral(
         "QPushButton { font-size: 13px; padding: 8px 24px;"
@@ -393,8 +400,35 @@ void MainDashboard::buildUi()
         "QPushButton:hover { background-color: #1976d2; }"
         "QPushButton:pressed { background-color: #0d47a1; }"
     ));
-    root_layout->addWidget(btn_summary, 0, Qt::AlignCenter);
     connect(btn_summary, &QPushButton::clicked, this, &MainDashboard::onSummaryClicked);
+
+    auto* btn_reset = new QPushButton(QStringLiteral("Reset PC"), central);
+    btn_reset->setStyleSheet(QStringLiteral(
+        "QPushButton { font-size: 13px; padding: 8px 20px;"
+        " background-color: #3a1a1a; color: #f44336;"
+        " border: 1px solid #f44336; border-radius: 6px; }"
+        "QPushButton:hover { background-color: #4d2020; }"
+        "QPushButton:pressed { background-color: #2a1010; }"
+    ));
+    connect(btn_reset, &QPushButton::clicked, this, &MainDashboard::onResetPcClicked);
+
+    bottom_row->addStretch();
+    bottom_row->addWidget(btn_summary);
+    bottom_row->addWidget(btn_reset);
+    bottom_row->addStretch();
+    root_layout->addLayout(bottom_row);
+
+    // Startup scan progress bar (hidden until scan starts)
+    m_startup_bar = new QProgressBar(central);
+    m_startup_bar->setRange(0, 0);          // indeterminate / pulsing
+    m_startup_bar->setFixedHeight(4);
+    m_startup_bar->setTextVisible(false);
+    m_startup_bar->setStyleSheet(QStringLiteral(
+        "QProgressBar { background: #333; border: none; border-radius: 2px; }"
+        "QProgressBar::chunk { background: #1976d2; border-radius: 2px; }"
+    ));
+    m_startup_bar->setVisible(false);
+    root_layout->addWidget(m_startup_bar);
 
     // Status bar
     statusBar()->showMessage(
@@ -403,16 +437,40 @@ void MainDashboard::buildUi()
 
 // ---------------------------------------------------------------------------
 // loadDeviceInfo
-// Calls AutoScan synchronously (acceptable for Phase 1 startup).
+// Runs AutoScan on a worker thread so the UI stays responsive.
+// Results arrive in onScanFinished() via QFutureWatcher.
 // ---------------------------------------------------------------------------
 void MainDashboard::loadDeviceInfo()
 {
-    statusBar()->showMessage(QStringLiteral("Scanning hardware…"));
-    QApplication::processEvents();   // Let the window paint before blocking
+    statusBar()->showMessage(QStringLiteral("กำลังสแกนฮาร์ดแวร์…"));
+    m_startup_bar->setVisible(true);
 
-    m_device_info = AutoScan::scan();
+    // Disable all module buttons while scanning
+    setEnabled(false);
 
-    statusBar()->showMessage(QStringLiteral("Hardware scan complete."), 5000);
+    m_scan_watcher = new QFutureWatcher<DeviceInfo>(this);
+    connect(m_scan_watcher, &QFutureWatcher<DeviceInfo>::finished,
+            this, &MainDashboard::onScanFinished);
+
+    m_scan_watcher->setFuture(QtConcurrent::run([]() -> DeviceInfo {
+        return AutoScan::scan();
+    }));
+}
+
+// ---------------------------------------------------------------------------
+// onScanFinished — called on the GUI thread when AutoScan completes
+// ---------------------------------------------------------------------------
+void MainDashboard::onScanFinished()
+{
+    m_device_info = m_scan_watcher->result();
+    m_scan_watcher->deleteLater();
+    m_scan_watcher = nullptr;
+
+    m_startup_bar->setVisible(false);
+    setEnabled(true);
+
+    populateDeviceLabels();
+    statusBar()->showMessage(QStringLiteral("สแกนฮาร์ดแวร์เสร็จแล้ว"), 5000);
 }
 
 // ---------------------------------------------------------------------------
@@ -699,6 +757,51 @@ void MainDashboard::onPortsCardClicked()
 void MainDashboard::onPortsFinished(nbi::ModuleResult result)
 {
     updateModuleCard(6, result);
+}
+
+// ---------------------------------------------------------------------------
+// onSummaryClicked
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// onResetPcClicked
+// ---------------------------------------------------------------------------
+void MainDashboard::onResetPcClicked()
+{
+    const int ans = QMessageBox::warning(
+        this,
+        QStringLiteral("Reset PC — คำเตือน"),
+        QStringLiteral(
+            "⚠  ข้อมูลทั้งหมดในเครื่องจะถูกลบถาวร\n\n"
+            "ใช้ฟีเจอร์นี้หลังส่งมอบเครื่องให้ลูกค้าแล้ว\n"
+            "และต้องการล้างเครื่องเท่านั้น\n\n"
+            "ต้องการเปิดหน้า Reset this PC ต่อไปหรือไม่?"
+        ),
+        QMessageBox::Yes | QMessageBox::Cancel,
+        QMessageBox::Cancel
+    );
+
+    if (ans != QMessageBox::Yes) return;
+
+    // Open Windows Recovery / Reset settings directly
+    // ms-settings:recovery  works on Windows 10 & 11
+    QProcess::startDetached(
+        QStringLiteral("cmd.exe"),
+        { QStringLiteral("/c"),
+          QStringLiteral("start ms-settings:recovery") }
+    );
+
+    QMessageBox::information(
+        this,
+        QStringLiteral("Reset PC"),
+        QStringLiteral(
+            "เปิดหน้า Reset this PC แล้ว\n\n"
+            "หากหน้าต่างไม่ปรากฏ ให้มองที่ Taskbar\n\n"
+            "ขั้นตอน:\n"
+            "  1. คลิก \"Reset this PC\"\n"
+            "  2. เลือก \"Remove everything\"\n"
+            "  3. ทำตามขั้นตอนบนหน้าจอ"
+        )
+    );
 }
 
 // ---------------------------------------------------------------------------

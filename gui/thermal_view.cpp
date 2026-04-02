@@ -35,6 +35,15 @@ void ThermalView::buildUi()
     }
     root->addWidget(lbl_title);
 
+    // Description
+    auto* lbl_desc = new QLabel(
+        QStringLiteral("อ่านอุณหภูมิผ่าน WMI MSAcpi_ThermalZoneTemperature — "
+                       "ค่า > 95°C = แดง (ความร้อนสูงผิดปกติ)\n"
+                       "หากเครื่องไม่มี ACPI sensor (desktop บางรุ่น) จะแสดง \"ไม่พบ sensor\" และข้ามโมดูลนี้"), this);
+    lbl_desc->setStyleSheet(QStringLiteral("color: #aaaaaa; font-size: 12px;"));
+    lbl_desc->setWordWrap(true);
+    root->addWidget(lbl_desc);
+
     m_lbl_status = new QLabel(
         QStringLiteral("กด Scan เพื่ออ่านอุณหภูมิ"), this);
     m_lbl_status->setStyleSheet(QStringLiteral("color: #aaaaaa; font-size: 12px;"));

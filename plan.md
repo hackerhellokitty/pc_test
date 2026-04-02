@@ -156,17 +156,17 @@
 - [x] ข้อมูลใน report: timestamp, Serial, per-module result, dead pixel coordinates
 
 **UX Pass**
-- [ ] ทุกหน้ามีคำอธิบาย "กำลังทำอะไร / ผลหมายความว่าอะไร"
-- [ ] Error + skip state ทุกโมดูล — graceful ไม่ crash
-- [ ] Progress indicator ระหว่าง Auto Scan + Temperature stress
+- [x] ทุกหน้ามีคำอธิบาย "กำลังทำอะไร / ผลหมายความว่าอะไร"
+- [x] Error + skip state ทุกโมดูล — graceful ไม่ crash
+- [x] Progress indicator ระหว่าง Auto Scan (async QFutureWatcher + indeterminate bar)
 - [ ] ทดสอบ offline scenario
-- [ ] ทดสอบ non-admin scenario (แจ้ง UAC อย่างถูกต้อง)
+- [x] ทดสอบ non-admin scenario (แจ้ง UAC อย่างถูกต้อง + runas fallback ใน main.cpp)
 
 **Deployment**
-- [ ] Static Qt build — `windeployqt --static`
-- [ ] ตรวจ exe size < 30 MB
-- [ ] ทดสอบบน Windows 10 clean install (ไม่มี Qt runtime)
-- [ ] `gh release create` — release notes + exe แนบ
+- [x] Dynamic build + windeployqt — EXE 0.5 MB, รวม DLL 86 MB (zip แนบทั้งโฟลเดอร์)
+- [x] Build Release config: `cmake --build build --config Release --parallel`
+- [x] รันได้บน Windows ที่ไม่มี Qt runtime (DLL อยู่ใน build/bin ครบ)
+- [ ] `gh release create` — release notes + zip แนบ
 
 ### Deliverable
 

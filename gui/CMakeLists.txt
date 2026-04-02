@@ -104,6 +104,7 @@ target_link_libraries(NBI
         common
         core
         Dxva2          # DDC/CI: GetMonitorBrightness / SetMonitorBrightness
+        shell32        # ShellExecuteW for runas re-launch
 )
 
 # ---------------------------------------------------------------------------

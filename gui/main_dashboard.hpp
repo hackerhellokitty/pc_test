@@ -9,8 +9,10 @@
 
 #include <QCheckBox>
 #include <QFrame>
+#include <QFutureWatcher>
 #include <QLabel>
 #include <QMainWindow>
+#include <QProgressBar>
 #include <QVBoxLayout>
 
 #include "common/types.hpp"
@@ -76,11 +78,13 @@ private slots:
     void onPortsCardClicked();
     void onPortsFinished(nbi::ModuleResult result);
     void onSummaryClicked();
+    void onResetPcClicked();
 
 private:
     void loadDeviceInfo();
     void buildUi();
     void populateDeviceLabels();
+    void onScanFinished();
 
     /// Return the CSS colour string for a given TestStatus.
     static QString statusColor(TestStatus status);
@@ -108,6 +112,10 @@ private:
     QCheckBox* m_chk_no_keyboard{nullptr};  ///< Keyboard card — tablet/no keyboard
     QCheckBox* m_chk_no_battery{nullptr};   ///< Battery card — desktop PC/no battery
     QCheckBox* m_chk_no_touchpad{nullptr};  ///< Touchpad card — PC/tablet no touchpad
+
+    QProgressBar* m_startup_bar{nullptr};   ///< Shown only during initial AutoScan
+
+    QFutureWatcher<DeviceInfo>* m_scan_watcher{nullptr};
 
     std::array<ModuleCard, kModuleCount> m_cards{};
     std::array<ModuleResult, kModuleCount> m_results{};
